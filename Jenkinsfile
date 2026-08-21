@@ -5,9 +5,7 @@ pipeline {
     stages {
 
         stage('Checkout') {
-
             steps {
-
                 echo 'Checking out source code...'
 
                 checkout scm
@@ -16,9 +14,7 @@ pipeline {
 
 
         stage('Maven Build') {
-
             steps {
-
                 echo 'Building Spring Boot application...'
 
                 sh '''
@@ -30,9 +26,7 @@ pipeline {
 
 
         stage('Unit Tests') {
-
             steps {
-
                 echo 'Running unit tests...'
 
                 sh '''
@@ -44,9 +38,7 @@ pipeline {
 
 
         stage('Docker Build') {
-
             steps {
-
                 echo 'Building Docker images...'
 
                 sh '''
@@ -57,12 +49,11 @@ pipeline {
 
 
         stage('Deploy') {
-
             steps {
-
                 echo 'Deploying application...'
 
                 sh '''
+                    docker compose down --remove-orphans || true
                     docker compose up -d
                 '''
             }
@@ -70,13 +61,21 @@ pipeline {
 
 
         stage('Verify') {
-
             steps {
-
-                echo 'Checking containers...'
+                echo 'Verifying application...'
 
                 sh '''
+                    echo "Waiting for application to start..."
+                    sleep 15
+
+                    echo "Checking containers..."
                     docker compose ps
+
+                    echo "Testing Employee API..."
+                    curl --fail --silent --show-error http://localhost/api/employees
+
+                    echo ""
+                    echo "Application verification successful!"
                 '''
             }
         }
@@ -86,13 +85,23 @@ pipeline {
     post {
 
         success {
-
+            echo '========================================='
             echo 'CI/CD Pipeline completed successfully!'
+            echo '========================================='
         }
 
         failure {
-
+            echo '========================================='
             echo 'CI/CD Pipeline failed!'
+            echo '========================================='
+
+            sh '''
+                docker compose ps || true
+            '''
+        }
+
+        always {
+            echo 'Pipeline execution completed.'
         }
     }
 }
