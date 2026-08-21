@@ -1,9 +1,7 @@
 services:
 
   mysql:
-
     image: mysql:8.0
-
     restart: unless-stopped
 
     environment:
@@ -21,7 +19,6 @@ services:
 
 
   backend:
-
     build:
       context: ./backend
 
@@ -43,7 +40,6 @@ services:
 
 
   frontend:
-
     build:
       context: ./frontend
 
@@ -60,11 +56,9 @@ services:
 
 
 networks:
-
   employee-network:
     driver: bridge
 
 
 volumes:
-
   mysql_data:
